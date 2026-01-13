@@ -3,21 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BiteCount - Pelacak Kalori</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="manifest" href="#" id="manifest-placeholder">
-    <meta name="theme-color" content="#1a4d2e">
+    <title>BiteCount - Manajemen Kalori Anda</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --dark-green: #1a4d2e;
-            --medium-green: #2d6a4f;
-            --light-green: #52b788;
-            --bright-pink: #ff006e;
-            --light-pink: #ff4d94;
-            --bg-light: #f8f9fa;
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -25,38 +15,319 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--dark-green) 0%, var(--medium-green) 100%);
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+            color: #E2E8F0;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        .gradient-bg {
-            background: linear-gradient(135deg, var(--dark-green) 0%, var(--medium-green) 100%);
-        }
-
-        /* Auth Pages */
-        .auth-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .auth-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-            max-width: 450px;
+        /* Loading Animation */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            animation: slideUp 0.5s ease-out;
+            height: 100%;
+            background: #0F172A;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .leaf-spinner {
+            width: 60px;
+            height: 60px;
+            position: relative;
+            animation: spin 2s linear infinite;
+        }
+
+        .leaf-spinner i {
+            font-size: 60px;
+            color: #06B6D4;
+            text-shadow: 0 0 20px #06B6D4;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(6, 182, 212, 0.6);
+            box-shadow: 0 0 30px rgba(6, 182, 212, 0.2);
+        }
+
+        /* Neon Button */
+        .neon-btn {
+            background: linear-gradient(135deg, #06B6D4, #8B5CF6);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            padding: 12px 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .neon-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
+        }
+
+        .neon-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .neon-btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8B5CF6, #06B6D4);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.6);
+            z-index: 1000;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Progress Ring */
+        .progress-ring {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+        }
+
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.5s ease;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .progress-text h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #06B6D4;
+            text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+        }
+
+        /* Macro Cards */
+        .macro-card {
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(139, 92, 246, 0.2));
+            border: 1px solid rgba(6, 182, 212, 0.4);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .macro-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(6, 182, 212, 0.3);
+        }
+
+        .macro-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            background: rgba(30, 41, 59, 0.8);
+            border: 2px solid rgba(6, 182, 212, 0.3);
+            border-radius: 12px;
+            padding: 12px 20px;
+            color: #E2E8F0;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .search-bar:focus {
+            outline: none;
+            border-color: #06B6D4;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+        }
+
+        /* Food List */
+        .food-item {
+            background: rgba(30, 41, 59, 0.5);
+            border-left: 3px solid #8B5CF6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .food-item:hover {
+            background: rgba(30, 41, 59, 0.8);
+            transform: translateX(5px);
+        }
+
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #10B981, #06B6D4);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.4);
+            z-index: 9999;
+            animation: slideIn 0.3s ease;
+            display: none;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Modal Custom */
+        .modal-content {
+            background: #1E293B;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 16px;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(6, 182, 212, 0.2);
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(6, 182, 212, 0.2);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .empty-state i {
+            font-size: 80px;
+            color: #8B5CF6;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Back Button */
+        .back-btn {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 8px;
+            color: #06B6D4;
+            padding: 8px 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background: rgba(6, 182, 212, 0.2);
+            border-color: #06B6D4;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(6, 182, 212, 0.2);
+        }
+
+        /* Chatbot Styles */
+        .chat-message {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            animation: slideUp 0.3s ease;
         }
 
         @keyframes slideUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(20px);
             }
             to {
                 opacity: 1;
@@ -64,730 +335,1100 @@
             }
         }
 
-        .auth-header {
-            background: linear-gradient(135deg, var(--bright-pink) 0%, var(--light-pink) 100%);
-            padding: 40px 30px;
-            text-align: center;
-            color: white;
-        }
-
-        .auth-header h2 {
-            font-weight: bold;
-            margin-bottom: 10px;
-            font-size: 2rem;
-        }
-
-        .auth-header p {
-            opacity: 0.9;
-            font-size: 0.95rem;
-        }
-
-        .auth-body {
-            padding: 40px 30px;
-        }
-
-        .form-control {
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            padding: 12px 15px;
-            transition: all 0.3s;
-        }
-
-        .form-control:focus {
-            border-color: var(--bright-pink);
-            box-shadow: 0 0 0 0.2rem rgba(255, 0, 110, 0.15);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--bright-pink) 0%, var(--light-pink) 100%);
-            border: none;
-            border-radius: 10px;
-            padding: 12px;
-            font-weight: bold;
-            transition: transform 0.2s;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(255, 0, 110, 0.4);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, var(--medium-green) 0%, var(--light-green) 100%);
-            border: none;
-            border-radius: 10px;
-            padding: 12px;
-            font-weight: bold;
-        }
-
-        /* Main App */
-        .app-container {
-            display: none;
-        }
-
-        .app-header {
-            background: linear-gradient(135deg, var(--dark-green) 0%, var(--medium-green) 100%);
-            color: white;
-            padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-
-        .app-header h1 {
-            font-size: 1.8rem;
-            font-weight: bold;
-            margin: 0;
-        }
-
-        .app-content {
-            padding: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .card {
-            border: none;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            overflow: hidden;
-            transition: transform 0.3s;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-        }
-
-        .card-header {
-            background: linear-gradient(135deg, var(--bright-pink) 0%, var(--light-pink) 100%);
-            color: white;
-            font-weight: bold;
-            border: none;
-            padding: 15px 20px;
-        }
-
-        .food-item {
-            background: white;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            transition: all 0.3s;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
         }
 
-        .food-item:hover {
-            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-            transform: translateX(5px);
+        .bot-message .message-avatar {
+            background: linear-gradient(135deg, #06B6D4, #8B5CF6);
         }
 
-        .food-info h5 {
-            color: var(--dark-green);
-            margin: 0 0 5px 0;
-            font-weight: bold;
+        .user-message {
+            flex-direction: row-reverse;
         }
 
-        .food-calories {
-            background: linear-gradient(135deg, var(--bright-pink) 0%, var(--light-pink) 100%);
-            color: white;
-            padding: 8px 15px;
+        .user-message .message-avatar {
+            background: linear-gradient(135deg, #8B5CF6, #EC4899);
+        }
+
+        .message-content {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 12px;
+            padding: 12px 16px;
+            max-width: 70%;
+        }
+
+        .user-message .message-content {
+            background: rgba(139, 92, 246, 0.3);
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+
+        .message-content strong {
+            color: #06B6D4;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .message-content p {
+            margin: 5px 0;
+            line-height: 1.6;
+        }
+
+        .quick-reply-btn {
+            background: rgba(6, 182, 212, 0.2);
+            border: 1px solid rgba(6, 182, 212, 0.4);
             border-radius: 20px;
-            font-weight: bold;
-        }
-
-        .stats-card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-        }
-
-        .stats-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            background: linear-gradient(135deg, var(--bright-pink) 0%, var(--light-pink) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .btn-delete {
-            background: none;
-            border: none;
-            color: var(--bright-pink);
-            font-size: 1.2rem;
+            padding: 6px 12px;
+            margin: 5px 5px 5px 0;
+            color: #06B6D4;
             cursor: pointer;
-            transition: transform 0.2s;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: inline-block;
         }
 
-        .btn-delete:hover {
-            transform: scale(1.2);
-        }
-
-        .social-search {
-            background: linear-gradient(135deg, var(--light-green) 0%, var(--medium-green) 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            padding: 12px 20px;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-
-        .social-search:hover {
+        .quick-reply-btn:hover {
+            background: rgba(6, 182, 212, 0.4);
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(45, 106, 79, 0.4);
-            color: white;
         }
 
-        .meal-plan-item {
-            background: linear-gradient(135deg, rgba(255, 0, 110, 0.1) 0%, rgba(255, 77, 148, 0.1) 100%);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-left: 4px solid var(--bright-pink);
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 10px;
         }
 
-        @media (max-width: 768px) {
-            .food-item {
-                flex-direction: column;
-                text-align: center;
-                gap: 10px;
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #06B6D4;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
             }
         }
 
-        .alert-custom {
-            border-radius: 10px;
-            border: none;
+        .food-recommendation {
+            background: rgba(6, 182, 212, 0.1);
+            border-left: 3px solid #06B6D4;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .food-recommendation strong {
+            color: #06B6D4;
         }
     </style>
 </head>
 <body>
-    <!-- Login Page -->
-    <div id="loginPage" class="auth-container gradient-bg">
-        <div class="auth-card">
-            <div class="auth-header">
-                <h2><i class="fas fa-utensils"></i> BiteCount</h2>
-                <p>Kelola kalori makananmu dengan mudah</p>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="leaf-spinner">
+            <i class="fas fa-leaf"></i>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-notification" id="toast"></div>
+
+    <!-- Page: Welcome -->
+    <div class="page active" id="welcomePage">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <h1 class="display-3 fw-bold mb-3" style="color: #06B6D4; text-shadow: 0 0 20px rgba(6, 182, 212, 0.5);">
+                    <i class="fas fa-leaf"></i> BiteCount
+                </h1>
+                <p class="lead">Track Your Journey to Better Health</p>
             </div>
-            <div class="auth-body">
-                <form id="loginForm">
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" id="loginEmail" placeholder="nama@email.com" required>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="glass-card">
+                        <h3 class="mb-4 text-center">Setup Profil Anda</h3>
+                        <form id="profileForm">
+                            <div class="mb-3">
+                                <label class="form-label">Nama</label>
+                                <input type="text" class="search-bar" id="userName" required placeholder="Masukkan nama Anda">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Jenis Kelamin</label>
+                                <select class="search-bar" id="gender" required>
+                                    <option value="">Pilih</option>
+                                    <option value="male">Pria</option>
+                                    <option value="female">Wanita</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Usia (tahun)</label>
+                                <input type="number" class="search-bar" id="age" required placeholder="25">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Tinggi Badan (cm)</label>
+                                <input type="number" class="search-bar" id="height" required placeholder="170">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Berat Badan (kg)</label>
+                                <input type="number" class="search-bar" id="weight" required placeholder="70">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Tingkat Aktivitas</label>
+                                <select class="search-bar" id="activity" required>
+                                    <option value="">Pilih</option>
+                                    <option value="1.2">Sangat Ringan (tidak olahraga)</option>
+                                    <option value="1.375">Ringan (1-3x/minggu)</option>
+                                    <option value="1.55">Sedang (3-5x/minggu)</option>
+                                    <option value="1.725">Berat (6-7x/minggu)</option>
+                                    <option value="1.9">Sangat Berat (2x sehari)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Target</label>
+                                <select class="search-bar" id="goal" required>
+                                    <option value="">Pilih</option>
+                                    <option value="deficit">Turunkan Berat (Deficit)</option>
+                                    <option value="maintain">Pertahankan Berat</option>
+                                    <option value="surplus">Naikkan Berat (Surplus)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="neon-btn w-100 mt-4">
+                                <i class="fas fa-rocket"></i> Mulai Perjalanan
+                            </button>
+                        </form>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <input type="password" class="form-control" id="loginPassword" placeholder="Minimal 6 karakter" required>
-                    </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="rememberMe">
-                        <label class="form-check-label" for="rememberMe">Ingat Saya</label>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 mb-3">
-                        <i class="fas fa-sign-in-alt"></i> Login
-                    </button>
-                    <div class="text-center">
-                        <a href="#" id="showForgotPassword" style="color: var(--bright-pink);">Lupa Password?</a>
-                    </div>
-                    <hr>
-                    <div class="text-center">
-                        <p class="mb-2">Belum punya akun?</p>
-                        <button type="button" class="btn btn-success w-100" id="showRegister">
-                            <i class="fas fa-user-plus"></i> Daftar Sekarang
-                        </button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Register Page -->
-    <div id="registerPage" class="auth-container gradient-bg" style="display: none;">
-        <div class="auth-card">
-            <div class="auth-header">
-                <h2><i class="fas fa-user-plus"></i> Daftar</h2>
-                <p>Buat akun baru untuk memulai</p>
-            </div>
-            <div class="auth-body">
-                <form id="registerForm">
-                    <div class="mb-3">
-                        <label class="form-label">Nama Lengkap</label>
-                        <input type="text" class="form-control" id="registerName" placeholder="Nama Anda" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" id="registerEmail" placeholder="nama@email.com" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <input type="password" class="form-control" id="registerPassword" placeholder="Minimal 6 karakter" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Konfirmasi Password</label>
-                        <input type="password" class="form-control" id="registerConfirmPassword" placeholder="Ulangi password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 mb-3">
-                        <i class="fas fa-check"></i> Daftar
-                    </button>
-                    <div class="text-center">
-                        <p class="mb-0">Sudah punya akun? <a href="#" id="showLogin" style="color: var(--bright-pink);">Login di sini</a></p>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Forgot Password Page -->
-    <div id="forgotPasswordPage" class="auth-container gradient-bg" style="display: none;">
-        <div class="auth-card">
-            <div class="auth-header">
-                <h2><i class="fas fa-key"></i> Lupa Password</h2>
-                <p>Reset password Anda</p>
-            </div>
-            <div class="auth-body">
-                <form id="forgotPasswordForm">
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" id="forgotEmail" placeholder="nama@email.com" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Password Baru</label>
-                        <input type="password" class="form-control" id="newPassword" placeholder="Minimal 6 karakter" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Konfirmasi Password Baru</label>
-                        <input type="password" class="form-control" id="confirmNewPassword" placeholder="Ulangi password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 mb-3">
-                        <i class="fas fa-sync"></i> Reset Password
-                    </button>
-                    <div class="text-center">
-                        <a href="#" id="backToLogin" style="color: var(--bright-pink);">Kembali ke Login</a>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main App -->
-    <div id="appContainer" class="app-container">
-        <div class="app-header">
-            <div class="container-fluid">
+    <!-- Page: Dashboard -->
+    <div class="page" id="dashboardPage">
+        <div class="sticky-header">
+            <div class="container">
                 <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h1><i class="fas fa-utensils"></i> BiteCount</h1>
-                        <small>Selamat datang, <span id="userName"></span>!</small>
-                    </div>
-                    <button class="btn btn-outline-light" id="logoutBtn">
-                        <i class="fas fa-sign-out-alt"></i> Logout
+                    <h5 class="mb-0">BiteCount</h5>
+                    <button class="back-btn" onclick="showSettings()">
+                        <i class="fas fa-cog"></i>
                     </button>
                 </div>
             </div>
         </div>
 
-        <div class="app-content">
-            <!-- Stats -->
-            <div class="row mb-4">
-                <div class="col-md-4 mb-3">
-                    <div class="stats-card">
-                        <i class="fas fa-fire fa-3x mb-2" style="color: var(--bright-pink);"></i>
-                        <div class="stats-number" id="totalCalories">0</div>
-                        <p class="text-muted mb-0">Total Kalori Hari Ini</p>
+        <div class="container py-4">
+            <div class="glass-card mb-4">
+                <h4 class="mb-3">Halo, <span id="displayName">User</span>! 👋</h4>
+                
+                <div class="progress-ring mb-4">
+                    <svg width="200" height="200">
+                        <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(30, 41, 59, 0.5)" stroke-width="15"/>
+                        <circle id="progressCircle" cx="100" cy="100" r="90" fill="none" stroke="#06B6D4" stroke-width="15" 
+                                stroke-linecap="round" stroke-dasharray="565.48" stroke-dashoffset="565.48"/>
+                    </svg>
+                    <div class="progress-text">
+                        <h2 id="remainingCalories">0</h2>
+                        <small>kkal tersisa</small>
                     </div>
                 </div>
-                <div class="col-md-4 mb-3">
-                    <div class="stats-card">
-                        <i class="fas fa-hamburger fa-3x mb-2" style="color: var(--light-green);"></i>
-                        <div class="stats-number" id="totalMeals">0</div>
-                        <p class="text-muted mb-0">Jumlah Makanan</p>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-4">
+                        <div class="macro-card">
+                            <div class="macro-icon">🥩</div>
+                            <div><strong id="proteinValue">0</strong>g</div>
+                            <small>Protein</small>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <div class="stats-card">
-                        <i class="fas fa-calendar-check fa-3x mb-2" style="color: var(--medium-green);"></i>
-                        <div class="stats-number" id="mealPlanCount">0</div>
-                        <p class="text-muted mb-0">Meal Plan</p>
+                    <div class="col-4">
+                        <div class="macro-card">
+                            <div class="macro-icon">🍚</div>
+                            <div><strong id="carbValue">0</strong>g</div>
+                            <small>Karbo</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="macro-card">
+                            <div class="macro-icon">🥑</div>
+                            <div><strong id="fatValue">0</strong>g</div>
+                            <small>Lemak</small>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Input Form -->
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-plus-circle"></i> Tambah Makanan/Minuman
-                </div>
-                <div class="card-body">
-                    <form id="foodForm">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Nama Makanan/Minuman</label>
-                                <input type="text" class="form-control" id="foodName" placeholder="Contoh: Nasi Goreng" required>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label">Kalori</label>
-                                <input type="number" class="form-control" id="foodCalories" placeholder="0" required>
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label">Porsi</label>
-                                <input type="number" class="form-control" id="foodPortion" placeholder="1" value="1" required>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> Tambahkan
-                        </button>
-                    </form>
-                </div>
+            <div class="glass-card mb-4">
+                <input type="text" class="search-bar" id="searchFood" placeholder="🔍 Makan apa hari ini?">
+                <div id="searchResults" class="mt-3"></div>
             </div>
 
-            <!-- Food List -->
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-list"></i> Daftar Makanan Hari Ini
-                </div>
-                <div class="card-body">
-                    <div id="foodList"></div>
-                </div>
-            </div>
-
-            <!-- Meal Plan -->
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-clipboard-list"></i> Meal Plan Saya
-                </div>
-                <div class="card-body">
-                    <form id="mealPlanForm" class="mb-3">
-                        <div class="row">
-                            <div class="col-md-8 mb-2">
-                                <input type="text" class="form-control" id="mealPlanName" placeholder="Contoh: Sarapan - Oatmeal & Buah" required>
-                            </div>
-                            <div class="col-md-4 mb-2">
-                                <button type="submit" class="btn btn-success w-100">
-                                    <i class="fas fa-plus"></i> Tambah Plan
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                    <div id="mealPlanList"></div>
+            <div class="glass-card">
+                <h5 class="mb-3">Riwayat Hari Ini</h5>
+                <div id="foodHistory">
+                    <div class="empty-state">
+                        <i class="fas fa-utensils"></i>
+                        <h5>Perut masih kosong nih?</h5>
+                        <p>Yuk catat makananmu hari ini!</p>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Social Media Search -->
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-dumbbell"></i> Cari Rekomendasi Olahraga
-                </div>
-                <div class="card-body text-center">
-                    <p class="mb-3">Temukan inspirasi olahraga dari media sosial</p>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <a href="https://www.youtube.com/results?search_query=olahraga+ringan+pemula" target="_blank" class="btn social-search w-100">
-                                <i class="fab fa-youtube"></i> YouTube
-                            </a>
-                        </div>
-                        <div class="col-md-4">
-                            <a href="https://www.instagram.com/explore/tags/workout/" target="_blank" class="btn social-search w-100">
-                                <i class="fab fa-instagram"></i> Instagram
-                            </a>
-                        </div>
-                        <div class="col-md-4">
-                            <a href="https://www.tiktok.com/search?q=workout%20routine" target="_blank" class="btn social-search w-100">
-                                <i class="fab fa-tiktok"></i> TikTok
-                            </a>
+        <button class="fab" onclick="showAddFoodModal()">
+            <i class="fas fa-plus"></i>
+        </button>
+
+        <!-- Chatbot Button -->
+        <button class="fab" style="bottom: 100px; background: linear-gradient(135deg, #10B981, #06B6D4);" onclick="toggleChatbot()">
+            <i class="fas fa-robot"></i>
+        </button>
+    </div>
+
+    <!-- Page: Chatbot -->
+    <div class="page" id="chatbotPage">
+        <div class="container py-4" style="max-width: 800px;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4><i class="fas fa-robot"></i> NutriBot AI</h4>
+                <button class="back-btn" onclick="closeChatbot()">
+                    <i class="fas fa-times"></i> Tutup
+                </button>
+            </div>
+
+            <div class="glass-card mb-3" style="height: 60vh; overflow-y: auto; padding: 20px;" id="chatContainer">
+                <div class="chat-message bot-message">
+                    <div class="message-avatar">🤖</div>
+                    <div class="message-content">
+                        <strong>NutriBot</strong>
+                        <p>Halo! Saya NutriBot, asisten nutrisi pintar Anda! 🌟</p>
+                        <p>Saya bisa membantu:</p>
+                        <ul style="margin: 10px 0; padding-left: 20px;">
+                            <li>💡 Rekomendasi makanan sesuai target kalori Anda</li>
+                            <li>🔢 Menghitung kalori dalam makanan</li>
+                            <li>🥗 Saran menu harian yang seimbang</li>
+                            <li>📊 Analisis nutrisi makanan</li>
+                        </ul>
+                        <p>Silakan tanya apa saja! Contoh:</p>
+                        <div style="margin-top: 10px;">
+                            <button class="quick-reply-btn" onclick="sendQuickReply('Rekomendasi makanan untuk deficit kalori')">Rekomendasi makanan deficit</button>
+                            <button class="quick-reply-btn" onclick="sendQuickReply('Berapa kalori dalam nasi goreng?')">Hitung kalori nasi goreng</button>
+                            <button class="quick-reply-btn" onclick="sendQuickReply('Menu sarapan sehat')">Menu sarapan sehat</button>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <div class="d-flex gap-2">
+                    <input type="text" class="search-bar" id="chatInput" placeholder="Ketik pertanyaan Anda..." style="flex: 1;">
+                    <button class="neon-btn" onclick="sendMessage()" style="padding: 12px 20px;">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <!-- Page: Settings -->
+    <div class="page" id="settingsPage">
+        <div class="container py-4">
+            <button class="back-btn mb-4" onclick="showDashboard()">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </button>
+
+            <div class="glass-card">
+                <h4 class="mb-4">Pengaturan Profil</h4>
+                <div class="mb-3">
+                    <strong>Target Kalori Harian:</strong> <span id="settingCalories">0</span> kkal
+                </div>
+                <div class="mb-3">
+                    <strong>BMR:</strong> <span id="settingBMR">0</span> kkal
+                </div>
+                <div class="mb-3">
+                    <strong>TDEE:</strong> <span id="settingTDEE">0</span> kkal
+                </div>
+                <button class="neon-btn w-100 mt-3" onclick="resetApp()">
+                    <i class="fas fa-redo"></i> Reset Data
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add Food -->
+    <div class="modal fade" id="addFoodModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Makanan</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nama Makanan</label>
+                        <input type="text" class="search-bar" id="foodName" placeholder="Contoh: Nasi Goreng">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kalori (kkal)</label>
+                        <input type="number" class="search-bar" id="foodCalories" placeholder="300">
+                    </div>
+                    <div class="row">
+                        <div class="col-4">
+                            <label class="form-label">Protein (g)</label>
+                            <input type="number" class="search-bar" id="foodProtein" placeholder="10">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Karbo (g)</label>
+                            <input type="number" class="search-bar" id="foodCarb" placeholder="45">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Lemak (g)</label>
+                            <input type="number" class="search-bar" id="foodFat" placeholder="8">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="neon-btn" onclick="addFood()">Tambahkan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Simple hash function for password
-        function simpleHash(str) {
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                const char = str.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash;
+        // Data Storage
+        let userData = {};
+        let foodLog = [];
+        let dailyTarget = 0;
+        let chatHistory = [];
+
+        // Food Database (Makanan Lokal Indonesia)
+        const foodDatabase = [
+            { name: "Nasi Putih", calories: 204, protein: 4, carbs: 45, fat: 0.4, portion: "100g" },
+            { name: "Nasi Goreng", calories: 333, protein: 8, carbs: 53, fat: 10, portion: "1 porsi" },
+            { name: "Ayam Goreng", calories: 246, protein: 27, carbs: 0, fat: 15, portion: "1 potong" },
+            { name: "Rendang", calories: 468, protein: 21, carbs: 6, fat: 40, portion: "1 porsi" },
+            { name: "Gado-gado", calories: 275, protein: 11, carbs: 28, fat: 13, portion: "1 porsi" },
+            { name: "Sate Ayam", calories: 210, protein: 25, carbs: 3, fat: 11, portion: "5 tusuk" },
+            { name: "Tempe Goreng", calories: 192, protein: 19, carbs: 9, fat: 11, portion: "100g" },
+            { name: "Tahu Goreng", calories: 76, protein: 8, carbs: 1.9, fat: 5, portion: "100g" },
+            { name: "Telur Dadar", calories: 154, protein: 11, carbs: 1, fat: 12, portion: "1 butir" },
+            { name: "Mie Goreng", calories: 400, protein: 12, carbs: 60, fat: 12, portion: "1 porsi" },
+            { name: "Soto Ayam", calories: 220, protein: 15, carbs: 20, fat: 8, portion: "1 mangkuk" },
+            { name: "Bakso", calories: 180, protein: 10, carbs: 15, fat: 9, portion: "1 mangkuk" },
+            { name: "Nasi Uduk", calories: 300, protein: 6, carbs: 50, fat: 8, portion: "1 porsi" },
+            { name: "Pecel Lele", calories: 350, protein: 20, carbs: 25, fat: 18, portion: "1 porsi" },
+            { name: "Sayur Asem", calories: 80, protein: 3, carbs: 12, fat: 2, portion: "1 mangkuk" }
+        ];
+
+        // Initialize
+        window.onload = function() {
+            setTimeout(() => {
+                document.getElementById('loadingScreen').classList.add('hidden');
+            }, 1500);
+
+            loadData();
+            if (userData.name) {
+                showDashboard();
             }
-            return hash.toString(36);
+        };
+
+        // Profile Setup
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            showLoading();
+
+            userData = {
+                name: document.getElementById('userName').value,
+                gender: document.getElementById('gender').value,
+                age: parseInt(document.getElementById('age').value),
+                height: parseInt(document.getElementById('height').value),
+                weight: parseInt(document.getElementById('weight').value),
+                activity: parseFloat(document.getElementById('activity').value),
+                goal: document.getElementById('goal').value
+            };
+
+            calculateCalories();
+            saveData();
+
+            setTimeout(() => {
+                hideLoading();
+                showDashboard();
+                showToast('Profil berhasil disimpan!');
+            }, 1000);
+        });
+
+        // Calculate BMR & TDEE
+        function calculateCalories() {
+            let bmr;
+            if (userData.gender === 'male') {
+                bmr = 10 * userData.weight + 6.25 * userData.height - 5 * userData.age + 5;
+            } else {
+                bmr = 10 * userData.weight + 6.25 * userData.height - 5 * userData.age - 161;
+            }
+
+            const tdee = bmr * userData.activity;
+
+            if (userData.goal === 'deficit') {
+                dailyTarget = tdee - 500;
+            } else if (userData.goal === 'surplus') {
+                dailyTarget = tdee + 500;
+            } else {
+                dailyTarget = tdee;
+            }
+
+            userData.bmr = Math.round(bmr);
+            userData.tdee = Math.round(tdee);
+            userData.dailyTarget = Math.round(dailyTarget);
         }
 
-        // Auth System
-        class AuthSystem {
-            constructor() {
-                this.currentUser = null;
-                this.init();
+        // Search Food
+        document.getElementById('searchFood').addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            const results = document.getElementById('searchResults');
+
+            if (query.length < 2) {
+                results.innerHTML = '';
+                return;
             }
 
-            init() {
-                this.checkSession();
-                this.setupEventListeners();
+            const filtered = foodDatabase.filter(food => 
+                food.name.toLowerCase().includes(query)
+            );
+
+            if (filtered.length > 0) {
+                results.innerHTML = filtered.map(food => `
+                    <div class="food-item" onclick='selectFood(${JSON.stringify(food)})'>
+                        <div>
+                            <strong>${food.name}</strong>
+                            <div><small>${food.calories} kkal</small></div>
+                        </div>
+                        <i class="fas fa-plus-circle" style="color: #06B6D4;"></i>
+                    </div>
+                `).join('');
+            } else {
+                results.innerHTML = '<p class="text-center mt-3">Tidak ditemukan</p>';
+            }
+        });
+
+        function selectFood(food) {
+            foodLog.push({
+                ...food,
+                time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+            });
+            saveData();
+            updateDashboard();
+            document.getElementById('searchFood').value = '';
+            document.getElementById('searchResults').innerHTML = '';
+            showToast(`${food.name} berhasil ditambahkan!`);
+        }
+
+        // Add Food Modal
+        function showAddFoodModal() {
+            new bootstrap.Modal(document.getElementById('addFoodModal')).show();
+        }
+
+        function addFood() {
+            const name = document.getElementById('foodName').value;
+            const calories = parseInt(document.getElementById('foodCalories').value);
+            const protein = parseInt(document.getElementById('foodProtein').value);
+            const carbs = parseInt(document.getElementById('foodCarb').value);
+            const fat = parseInt(document.getElementById('foodFat').value);
+
+            if (!name || !calories) {
+                alert('Harap isi nama dan kalori makanan');
+                return;
             }
 
-            setupEventListeners() {
-                document.getElementById('loginForm').addEventListener('submit', (e) => this.handleLogin(e));
-                document.getElementById('registerForm').addEventListener('submit', (e) => this.handleRegister(e));
-                document.getElementById('forgotPasswordForm').addEventListener('submit', (e) => this.handleForgotPassword(e));
-                document.getElementById('showRegister').addEventListener('click', () => this.showPage('register'));
-                document.getElementById('showLogin').addEventListener('click', () => this.showPage('login'));
-                document.getElementById('showForgotPassword').addEventListener('click', () => this.showPage('forgot'));
-                document.getElementById('backToLogin').addEventListener('click', () => this.showPage('login'));
-                document.getElementById('logoutBtn').addEventListener('click', () => this.logout());
+            foodLog.push({
+                name,
+                calories,
+                protein: protein || 0,
+                carbs: carbs || 0,
+                fat: fat || 0,
+                time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+            });
+
+            saveData();
+            updateDashboard();
+            bootstrap.Modal.getInstance(document.getElementById('addFoodModal')).hide();
+            showToast(`${name} berhasil ditambahkan!`);
+
+            // Reset form
+            document.getElementById('foodName').value = '';
+            document.getElementById('foodCalories').value = '';
+            document.getElementById('foodProtein').value = '';
+            document.getElementById('foodCarb').value = '';
+            document.getElementById('foodFat').value = '';
+        }
+
+        // Update Dashboard
+        function updateDashboard() {
+            const totalCalories = foodLog.reduce((sum, food) => sum + food.calories, 0);
+            const totalProtein = foodLog.reduce((sum, food) => sum + food.protein, 0);
+            const totalCarbs = foodLog.reduce((sum, food) => sum + food.carbs, 0);
+            const totalFat = foodLog.reduce((sum, food) => sum + food.fat, 0);
+
+            const remaining = userData.dailyTarget - totalCalories;
+            const percentage = Math.min((totalCalories / userData.dailyTarget) * 100, 100);
+
+            document.getElementById('displayName').textContent = userData.name;
+            document.getElementById('remainingCalories').textContent = Math.max(remaining, 0);
+            document.getElementById('proteinValue').textContent = totalProtein;
+            document.getElementById('carbValue').textContent = totalCarbs;
+            document.getElementById('fatValue').textContent = totalFat;
+
+            // Update progress ring
+            const circle = document.getElementById('progressCircle');
+            const circumference = 565.48;
+            const offset = circumference - (percentage / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+
+            if (totalCalories > userData.dailyTarget) {
+                circle.style.stroke = '#EF4444';
+            } else {
+                circle.style.stroke = '#06B6D4';
             }
 
-            showPage(page) {
-                document.getElementById('loginPage').style.display = 'none';
-                document.getElementById('registerPage').style.display = 'none';
-                document.getElementById('forgotPasswordPage').style.display = 'none';
-                document.getElementById('appContainer').style.display = 'none';
-
-                if (page === 'login') {
-                    document.getElementById('loginPage').style.display = 'flex';
-                } else if (page === 'register') {
-                    document.getElementById('registerPage').style.display = 'flex';
-                } else if (page === 'forgot') {
-                    document.getElementById('forgotPasswordPage').style.display = 'flex';
-                } else if (page === 'app') {
-                    document.getElementById('appContainer').style.display = 'block';
-                }
+            // Update food history
+            const historyDiv = document.getElementById('foodHistory');
+            if (foodLog.length === 0) {
+                historyDiv.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-utensils"></i>
+                        <h5>Perut masih kosong nih?</h5>
+                        <p>Yuk catat makananmu hari ini!</p>
+                    </div>
+                `;
+            } else {
+                historyDiv.innerHTML = foodLog.map((food, index) => `
+                    <div class="food-item">
+                        <div>
+                            <strong>${food.name}</strong>
+                            <div><small>${food.time} | ${food.calories} kkal</small></div>
+                        </div>
+                        <button class="btn btn-sm btn-danger" onclick="removeFood(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `).join('');
             }
+        }
 
-            handleRegister(e) {
-                e.preventDefault();
-                const name = document.getElementById('registerName').value;
-                const email = document.getElementById('registerEmail').value;
-                const password = document.getElementById('registerPassword').value;
-                const confirmPassword = document.getElementById('registerConfirmPassword').value;
+        function removeFood(index) {
+            const foodName = foodLog[index].name;
+            foodLog.splice(index, 1);
+            saveData();
+            updateDashboard();
+            showToast(`${foodName} dihapus`);
+        }
 
-                if (password.length < 6) {
-                    alert('Password harus minimal 6 karakter!');
-                    return;
-                }
+        // Page Navigation
+        function showDashboard() {
+            showLoading();
+            setTimeout(() => {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.getElementById('dashboardPage').classList.add('active');
+                updateDashboard();
+                hideLoading();
+            }, 800);
+        }
 
-                if (password !== confirmPassword) {
-                    alert('Password tidak cocok!');
-                    return;
-                }
+        function showSettings() {
+            showLoading();
+            setTimeout(() => {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.getElementById('settingsPage').classList.add('active');
+                document.getElementById('settingCalories').textContent = userData.dailyTarget;
+                document.getElementById('settingBMR').textContent = userData.bmr;
+                document.getElementById('settingTDEE').textContent = userData.tdee;
+                hideLoading();
+            }, 800);
+        }
 
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(email)) {
-                    alert('Email tidak valid!');
-                    return;
-                }
+        // Loading
+        function showLoading() {
+            document.getElementById('loadingScreen').classList.remove('hidden');
+        }
 
-                const users = JSON.parse(localStorage.getItem('bitecount_users') || '[]');
+        function hideLoading() {
+            document.getElementById('loadingScreen').classList.add('hidden');
+        }
+
+        // Toast
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // Storage
+        function saveData() {
+            const data = {
+                userData,
+                foodLog,
+                date: new Date().toDateString()
+            };
+            localStorage.setItem('biteCountData', JSON.stringify(data));
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('biteCountData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                const today = new Date().toDateString();
                 
-                if (users.find(u => u.email === email)) {
-                    alert('Email sudah terdaftar!');
-                    return;
+                if (data.date === today) {
+                    userData = data.userData;
+                    foodLog = data.foodLog;
+                    dailyTarget = userData.dailyTarget;
+                } else {
+                    userData = data.userData;
+                    foodLog = [];
+                    dailyTarget = userData.dailyTarget;
+                    saveData();
                 }
-
-                const newUser = {
-                    id: Date.now(),
-                    name: name,
-                    email: email,
-                    password: simpleHash(password)
-                };
-
-                users.push(newUser);
-                localStorage.setItem('bitecount_users', JSON.stringify(users));
-                
-                alert('Pendaftaran berhasil! Silakan login.');
-                this.showPage('login');
-                document.getElementById('registerForm').reset();
             }
+        }
 
-            handleLogin(e) {
-                e.preventDefault();
-                const email = document.getElementById('loginEmail').value;
-                const password = document.getElementById('loginPassword').value;
-                const rememberMe = document.getElementById('rememberMe').checked;
-
-                const users = JSON.parse(localStorage.getItem('bitecount_users') || '[]');
-                const user = users.find(u => u.email === email && u.password === simpleHash(password));
-
-                if (!user) {
-                    alert('Email atau password salah!');
-                    return;
-                }
-
-                this.currentUser = user;
-                const sessionData = {
-                    userId: user.id,
-                    email: user.email,
-                    name: user.name,
-                    rememberMe: rememberMe
-                };
-
-                localStorage.setItem('bitecount_session', JSON.stringify(sessionData));
-                
-                document.getElementById('userName').textContent = user.name;
-                this.showPage('app');
-                app.loadUserData();
-                document.getElementById('loginForm').reset();
+        function resetApp() {
+            if (confirm('Yakin ingin reset semua data?')) {
+                localStorage.removeItem('biteCountData');
+                location.reload();
             }
+        }
 
-            handleForgotPassword(e) {
-                e.preventDefault();
-                const email = document.getElementById('forgotEmail').value;
-                const newPassword = document.getElementById('newPassword').value;
-                const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+        // ========== CHATBOT FUNCTIONS ==========
 
-                if (newPassword.length < 6) {
-                    alert('Password harus minimal 6 karakter!');
-                    return;
-                }
+        function toggleChatbot() {
+            showLoading();
+            setTimeout(() => {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.getElementById('chatbotPage').classList.add('active');
+                hideLoading();
+            }, 800);
+        }
 
-                if (newPassword !== confirmNewPassword) {
-                    alert('Password tidak cocok!');
-                    return;
-                }
+        function closeChatbot() {
+            showDashboard();
+        }
 
-                const users = JSON.parse(localStorage.getItem('bitecount_users') || '[]');
-                const userIndex = users.findIndex(u => u.email === email);
+        function sendQuickReply(message) {
+            document.getElementById('chatInput').value = message;
+            sendMessage();
+        }
 
-                if (userIndex === -1) {
-                    alert('Email tidak ditemukan!');
-                    return;
-                }
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
 
-                users[userIndex].password = simpleHash(newPassword);
-                localStorage.setItem('bitecount_users', JSON.stringify(users));
+            // Add user message
+            addChatMessage('user', message);
+            input.value = '';
 
-                alert('Password berhasil direset! Silakan login dengan password baru.');
-                this.showPage('login');
-                document.getElementById('forgotPasswordForm').reset();
+            // Show typing indicator
+            showTypingIndicator();
+
+            // Process message with AI
+            setTimeout(() => {
+                hideTypingIndicator();
+                const response = processAIMessage(message);
+                addChatMessage('bot', response);
+            }, 1500);
+        }
+
+        function addChatMessage(sender, content) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${sender}-message`;
+            
+            const avatar = sender === 'bot' ? '🤖' : '👤';
+            const name = sender === 'bot' ? 'NutriBot' : userData.name || 'Anda';
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div class="message-content">
+                    <strong>${name}</strong>
+                    ${content}
+                </div>
+            `;
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            chatHistory.push({ sender, content, timestamp: new Date() });
+        }
+
+        function showTypingIndicator() {
+            const chatContainer = document.getElementById('chatContainer');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'chat-message bot-message';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div class="typing-indicator">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            `;
+            chatContainer.appendChild(typingDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) indicator.remove();
+        }
+
+        function processAIMessage(message) {
+            const lowerMsg = message.toLowerCase();
+            
+            // Calculate calories in food
+            if (lowerMsg.includes('berapa kalori') || lowerMsg.includes('hitung kalori') || lowerMsg.includes('kalori dalam')) {
+                return calculateCaloriesResponse(message);
             }
+            
+            // Food recommendations
+            if (lowerMsg.includes('rekomendasi') || lowerMsg.includes('saran') || lowerMsg.includes('menu')) {
+                return getFoodRecommendations();
+            }
+            
+            // Breakfast menu
+            if (lowerMsg.includes('sarapan') || lowerMsg.includes('pagi')) {
+                return getBreakfastMenu();
+            }
+            
+            // Lunch menu
+            if (lowerMsg.includes('makan siang') || lowerMsg.includes('siang')) {
+                return getLunchMenu();
+            }
+            
+            // Dinner menu
+            if (lowerMsg.includes('makan malam') || lowerMsg.includes('malam')) {
+                return getDinnerMenu();
+            }
+            
+            // Deficit diet
+            if (lowerMsg.includes('deficit') || lowerMsg.includes('diet') || lowerMsg.includes('turun')) {
+                return getDeficitAdvice();
+            }
+            
+            // Surplus diet
+            if (lowerMsg.includes('surplus') || lowerMsg.includes('naik') || lowerMsg.includes('bulking')) {
+                return getSurplusAdvice();
+            }
+            
+            // Protein foods
+            if (lowerMsg.includes('protein') || lowerMsg.includes('otot')) {
+                return getProteinFoods();
+            }
+            
+            // Healthy snacks
+            if (lowerMsg.includes('cemilan') || lowerMsg.includes('snack')) {
+                return getHealthySnacks();
+            }
+            
+            // Default response
+            return getDefaultResponse();
+        }
 
-            checkSession() {
-                const session = JSON.parse(localStorage.getItem('bitecount_session') || 'null');
-                
-                if (session && session.rememberMe) {
-                    const users = JSON.parse(localStorage.getItem('bitecount_users') || '[]');
-                    const user = users.find(u => u.id === session.userId);
-                    
-                    if (user) {
-                        this.currentUser = user;
-                        document.getElementById('userName').textContent = user.name;
-                        this.showPage('app');
-                        app.loadUserData();
-                        return;
+        function calculateCaloriesResponse(message) {
+            const lowerMsg = message.toLowerCase();
+            let foundFood = null;
+            
+            // Search for food in database
+            for (const food of foodDatabase) {
+                if (lowerMsg.includes(food.name.toLowerCase())) {
+                    foundFood = food;
+                    break;
+                }
+            }
+            
+            if (foundFood) {
+                return `
+                    <p>Informasi nutrisi untuk <strong>${foundFood.name}</strong> (${foundFood.portion}):</p>
+                    <div class="food-recommendation">
+                        <div>🔥 Kalori: <strong>${foundFood.calories} kkal</strong></div>
+                        <div>🥩 Protein: <strong>${foundFood.protein}g</strong></div>
+                        <div>🍚 Karbohidrat: <strong>${foundFood.carbs}g</strong></div>
+                        <div>🥑 Lemak: <strong>${foundFood.fat}g</strong></div>
+                    </div>
+                    <p>Apakah Anda ingin menambahkan makanan ini ke log harian?</p>
+                    <button class="quick-reply-btn" onclick="addFoodFromChat('${foundFood.name}', ${foundFood.calories}, ${foundFood.protein}, ${foundFood.carbs}, ${foundFood.fat})">
+                        ➕ Tambah ke Log
+                    </button>
+                `;
+            } else {
+                // Extract food name from message
+                const foodName = extractFoodName(message);
+                return `
+                    <p>Maaf, saya tidak menemukan "${foodName}" di database. Berikut estimasi kalori untuk makanan umum:</p>
+                    <div class="food-recommendation">
+                        <div>🍚 Nasi (1 porsi): ~200 kkal</div>
+                        <div>🍗 Ayam (100g): ~165 kkal</div>
+                        <div>🥚 Telur (1 butir): ~70 kkal</div>
+                        <div>🥗 Sayuran (100g): ~30-50 kkal</div>
+                    </div>
+                    <p>Atau coba tanyakan makanan lain yang ada di database saya!</p>
+                `;
+            }
+        }
+
+        function extractFoodName(message) {
+            const words = message.toLowerCase().split(' ');
+            const stopWords = ['berapa', 'kalori', 'dalam', 'hitung', 'ada', 'di', 'untuk'];
+            const foodWords = words.filter(w => !stopWords.includes(w) && w.length > 2);
+            return foodWords.join(' ') || 'makanan tersebut';
+        }
+
+        function getFoodRecommendations() {
+            const remaining = userData.dailyTarget - foodLog.reduce((sum, f) => sum + f.calories, 0);
+            const goal = userData.goal;
+            
+            let recommendations = [];
+            
+            if (goal === 'deficit') {
+                recommendations = foodDatabase
+                    .filter(f => f.calories < 300)
+                    .sort((a, b) => a.calories - b.calories)
+                    .slice(0, 5);
+            } else if (goal === 'surplus') {
+                recommendations = foodDatabase
+                    .filter(f => f.calories > 300)
+                    .sort((a, b) => b.calories - a.calories)
+                    .slice(0, 5);
+            } else {
+                recommendations = foodDatabase.slice(0, 5);
+            }
+            
+            let response = `<p>Berdasarkan target Anda (${goal}), berikut rekomendasi makanan:</p>`;
+            response += `<p><strong>Sisa kalori hari ini: ${Math.max(remaining, 0)} kkal</strong></p>`;
+            
+            recommendations.forEach(food => {
+                response += `
+                    <div class="food-recommendation">
+                        <strong>${food.name}</strong> (${food.portion})
+                        <div style="margin-top: 5px;">
+                            🔥 ${food.calories} kkal | 🥩 ${food.protein}g P | 🍚 ${food.carbs}g C | 🥑 ${food.fat}g F
+                        </div>
+                    </div>
+                `;
+            });
+            
+            return response;
+        }
+
+        function getBreakfastMenu() {
+            return `
+                <p>🌅 <strong>Rekomendasi Menu Sarapan Sehat:</strong></p>
+                <div class="food-recommendation">
+                    <strong>Opsi 1: Sarapan Rendah Kalori</strong>
+                    <div>• Telur Dadar (1 butir) - 154 kkal</div>
+                    <div>• Tempe Goreng (50g) - 96 kkal</div>
+                    <div>• Nasi Putih (50g) - 102 kkal</div>
+                    <div><strong>Total: ~350 kkal</strong></div>
+                </div>
+                <div class="food-recommendation">
+                    <strong>Opsi 2: Sarapan Berprotein</strong>
+                    <div>• Nasi Uduk (1 porsi) - 300 kkal</div>
+                    <div>• Ayam Goreng (1 potong kecil) - 150 kkal</div>
+                    <div>• Tempe Goreng (50g) - 96 kkal</div>
+                    <div><strong>Total: ~550 kkal</strong></div>
+                </div>
+                <p>💡 Tips: Sarapan sebaiknya 20-25% dari total kalori harian Anda!</p>
+            `;
+        }
+
+        function getLunchMenu() {
+            return `
+                <p>☀️ <strong>Rekomendasi Menu Makan Siang:</strong></p>
+                <div class="food-recommendation">
+                    <strong>Opsi 1: Balanced Meal</strong>
+                    <div>• Nasi Putih (150g) - 300 kkal</div>
+                    <div>• Ayam Goreng (1 potong) - 246 kkal</div>
+                    <div>• Sayur Asem - 80 kkal</div>
+                    <div>• Tempe Goreng - 192 kkal</div>
+                    <div><strong>Total: ~820 kkal</strong></div>
+                </div>
+                <div class="food-recommendation">
+                    <strong>Opsi 2: High Protein</strong>
+                    <div>• Nasi Putih (100g) - 204 kkal</div>
+                    <div>• Rendang (1 porsi) - 468 kkal</div>
+                    <div>• Sayuran - 80 kkal</div>
+                    <div><strong>Total: ~750 kkal</strong></div>
+                </div>
+                <p>💡 Makan siang sebaiknya porsi terbesar, sekitar 35-40% kalori harian!</p>
+            `;
+        }
+
+        function getDinnerMenu() {
+            return `
+                <p>🌙 <strong>Rekomendasi Menu Makan Malam:</strong></p>
+                <div class="food-recommendation">
+                    <strong>Opsi 1: Light Dinner</strong>
+                    <div>• Soto Ayam (1 mangkuk) - 220 kkal</div>
+                    <div>• Nasi Putih (75g) - 150 kkal</div>
+                    <div>• Tahu Goreng - 76 kkal</div>
+                    <div><strong>Total: ~450 kkal</strong></div>
+                </div>
+                <div class="food-recommendation">
+                    <strong>Opsi 2: Protein Focus</strong>
+                    <div>• Pecel Lele (1 porsi) - 350 kkal</div>
+                    <div>• Nasi Putih (100g) - 204 kkal</div>
+                    <div>• Sayuran - 50 kkal</div>
+                    <div><strong>Total: ~600 kkal</strong></div>
+                </div>
+                <p>💡 Makan malam sebaiknya lebih ringan, hindari makan 3 jam sebelum tidur!</p>
+            `;
+        }
+
+        function getDeficitAdvice() {
+            return `
+                <p>📉 <strong>Tips Diet Deficit Kalori:</strong></p>
+                <div class="food-recommendation">
+                    <strong>Prinsip Utama:</strong>
+                    <div>• Kurangi 300-500 kkal dari TDEE</div>
+                    <div>• Fokus pada makanan tinggi protein</div>
+                    <div>• Perbanyak sayuran untuk kenyang lebih lama</div>
+                    <div>• Minum air putih 2-3 liter/hari</div>
+                </div>
+                <div class="food-recommendation">
+                    <strong>Makanan yang Disarankan:</strong>
+                    <div>✅ Tempe & Tahu (protein tinggi, kalori rendah)</div>
+                    <div>✅ Telur (kenyang lama)</div>
+                    <div>✅ Sayuran hijau (serat tinggi)</div>
+                    <div>✅ Ayam tanpa kulit</div>
+                    <div>❌ Hindari: Gorengan, minuman manis, nasi putih berlebih</div>
+                </div>
+                <p>💪 Kombinasikan dengan olahraga kardio 3-4x seminggu!</p>
+            `;
+        }
+
+        function getSurplusAdvice() {
+            return `
+                <p>📈 <strong>Tips Diet Surplus Kalori (Bulking):</strong></p>
+                <div class="food-recommendation">
+                    <strong>Prinsip Utama:</strong>
+                    <div>• Tambah 300-500 kkal dari TDEE</div>
+                    <div>• Protein: 1.6-2g per kg berat badan</div>
+                    <div>• Karbohidrat kompleks untuk energi</div>
+                    <div>• Lemak sehat dari alpukat, kacang</div>
+                </div>
+                <div class="food-recommendation">
+                    <strong>Makanan yang Disarankan:</strong>
+                    <div>✅ Nasi, kentang, oatmeal (karbo kompleks)</div>
+                    <div>✅ Daging ayam, ikan, telur (protein)</div>
+                    <div>✅ Tempe, tahu (protein nabati)</div>
+                    <div>✅ Alpukat, kacang (lemak sehat)</div>
+                    <div>✅ Susu, pisang (snack berkalori)</div>
+                </div>
+                <p>🏋️ Kombinasikan dengan strength training 4-5x seminggu!</p>
+            `;
+        }
+
+        function getProteinFoods() {
+            const highProteinFoods = foodDatabase
+                .filter(f => f.protein > 10)
+                .sort((a, b) => b.protein - a.protein);
+            
+            let response = `<p>🥩 <strong>Makanan Tinggi Protein:</strong></p>`;
+            
+            highProteinFoods.forEach(food => {
+                response += `
+                    <div class="food-recommendation">
+                        <strong>${food.name}</strong>
+                        <div>💪 Protein: ${food.protein}g | 🔥 ${food.calories} kkal per ${food.portion}</div>
+                    </div>
+                `;
+            });
+            
+            response += `<p>💡 Protein penting untuk pembentukan otot dan pemulihan!</p>`;
+            return response;
+        }
+
+        function getHealthySnacks() {
+            return `
+                <p>🍎 <strong>Cemilan Sehat Rekomendasi:</strong></p>
+                <div class="food-recommendation">
+                    <strong>Cemilan Rendah Kalori:</strong>
+                    <div>• Buah-buahan segar (100 kkal)</div>
+                    <div>• Edamame rebus (120 kkal)</div>
+                    <div>• Yogurt plain (150 kkal)</div>
+                    <div>• Kacang almond 10 biji (70 kkal)</div>
+                </div>
+                <div class="food-recommendation">
+                    <strong>Cemilan Berprotein:</strong>
+                    <div>• Telur rebus (70 kkal)</div>
+                    <div>• Tahu kukus (76 kkal)</div>
+                    <div>• Tempe goreng kering (192 kkal)</div>
+                </div>
+                <p>💡 Cemilan sebaiknya 10-15% dari total kalori harian!</p>
+            `;
+        }
+
+        function getDefaultResponse() {
+            return `
+                <p>Maaf, saya kurang mengerti pertanyaan Anda. Saya bisa membantu dengan:</p>
+                <button class="quick-reply-btn" onclick="sendQuickReply('Berapa kalori nasi goreng?')">Hitung kalori makanan</button>
+                <button class="quick-reply-btn" onclick="sendQuickReply('Rekomendasi makanan deficit')">Rekomendasi makanan</button>
+                <button class="quick-reply-btn" onclick="sendQuickReply('Menu sarapan sehat')">Menu harian</button>
+                <button class="quick-reply-btn" onclick="sendQuickReply('Makanan tinggi protein')">Info nutrisi</button>
+            `;
+        }
+
+        function addFoodFromChat(name, calories, protein, carbs, fat) {
+            foodLog.push({
+                name,
+                calories,
+                protein,
+                carbs,
+                fat,
+                time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+            });
+            saveData();
+            showToast(`${name} berhasil ditambahkan ke log!`);
+            addChatMessage('bot', `<p>✅ <strong>${name}</strong> telah ditambahkan ke log harian Anda!</p>`);
+        }
+
+        // Enter key support for chat
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatInput = document.getElementById('chatInput');
+            if (chatInput) {
+                chatInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        sendMessage();
                     }
-                }
-                
-                this.showPage('login');
+                });
             }
-
-            logout() {
-                if (confirm('Yakin ingin logout?')) {
-                    localStorage.removeItem('bitecount_session');
-                    this.currentUser = null;
-                    this.showPage('login');
-                }
-            }
-
-            getCurrentUserId() {
-                return this.currentUser ? this.currentUser.id : null;
-            }
-        }
-
-        // Main App
-        class BiteCountApp {
-            constructor() {
-                this.foods = [];
-                this.mealPlans = [];
-                this.setupEventListeners();
-            }
-
-            setupEventListeners() {
-                document.getElementById('foodForm').addEventListener('submit', (e) => this.addFood(e));
-                document.getElementById('mealPlanForm').addEventListener('submit', (e) => this.addMealPlan(e));
-            }
-
-            loadUserData() {
-                const userId = auth.getCurrentUserId();
-                if (!userId) return;
-
-                const userKey = `bitecount_data_${userId}`;
-                const data = JSON.parse(localStorage.getItem(userKey) || '{"foods":[],"mealPlans":[]}');
-                
-                this.foods = data.foods || [];
-                this.mealPlans = data.mealPlans || [];
-                
-                this.render();
-            }
-
-            saveUserData() {
-                const userId = auth.getCurrentUserId();
-                if (!userId) return;
-
-                const userKey = `bitecount_data_${userId}`;
-                const data = {
-                    foods: this.foods,
-                    mealPlans: this.mealPlans
-                };
-                
-                localStorage.setItem(userKey, JSON.stringify(data));
-            }
-
-            addFood(e) {
-                e.preventDefault();
-                const name = document.getElementById('foodName').value;
-                const calories = parseInt(document.getElementById('foodCalories').value);
-                const portion = parseInt(document.getElementById('foodPortion').value);
-
-                const food = {
-                    id: Date.now(),
-                    name: name,
-                    calories: calories * portion,
-                    portion: portion,
-                    date: new Date().toLocaleDateString('id-ID')
-                };
-
-                this.foods.push(food);
-                this.saveUserData();
-                this.render();
-                document.getElementById('foodForm').reset();
-                document.getElementById('foodPortion').value = 1;
-            }
-
-            deleteFood(id) {
-                if (confirm('Hapus makanan ini?')) {
-                    this.foods = this.foods.filter(f => f.id !== id);
-                    this.saveUserData();
-                    this.render();
-                }
-            }
-
-            addMealPlan(e) {
-                e.preventDefault();
-                const name = document.getElementById('mealPlanName').value;
-
-                const plan = {
-                    id: Date.now(),
-                    name: name,
-                    created: new Date().toLocaleDateString('id-ID')
-                };
-
-                this.mealPlans.push(plan);
-                this.saveUserData();
-                this.render();
-                document.getElementById('mealPlanForm').reset();
-            }
-
-            deleteMealPlan(id) {
-                if (confirm('Hapus meal plan ini?')) {
-                    this.mealPlans = this.mealPlans.filter(m => m.id !== id);
-                    this.saveUserData();
-                    this.render();
-                }
-            }
-
-            render() {
-                // Render food list
-                const foodList = document.getElementById('foodList');
-                const today
+        });
+    </script>
+</body>
+</html>
